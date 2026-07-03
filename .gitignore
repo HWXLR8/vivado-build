@@ -1,0 +1,25 @@
+# Installer payloads
+FPGAs_AdaptiveSoCs_Unified_*.tar.gz
+
+# Vivado generated outputs
+*.bit
+*.jou
+*.log
+*.backup.jou
+*.backup.log
+hs_err_pid*.log
+
+# Project-generated Vivado files
+proj/hello_proj/
+proj/NA/
+proj/*.bit
+proj/*.jou
+proj/*.log
+proj/*.backup.jou
+proj/*.backup.log
+proj/hs_err_pid*.log
+
+# Local scratch/backups
+*.backup
+*.bak
+*~
