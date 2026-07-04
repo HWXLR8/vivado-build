@@ -1,18 +1,18 @@
 SHELL := /bin/bash
 
-# --- config ---
 VIVADO_VERSION  := 2023.2
 IMAGE_NAME      := vivado-base:$(VIVADO_VERSION)
 INSTALL_DIR     := $(HOME)/xilinx-install
 LICENSE_DIR     := $(HOME)/xilinx-license
 PROJ_DIR        := $(CURDIR)/proj
-TARBALL         := FPGAs_AdaptiveSoCs_Unified_2023.2_1013_2256.tar.gz
-CONFIG_FILE     := install_config.txt
 BOARD           := pynq_z2
 BIT_FILE        := $(PROJ_DIR)/pynq_z2_rtl.bit
 TCL_SCRIPT      := tcl/build_bitstream.tcl
 SETUP_SCRIPT    := tcl/setup_project.tcl
 VERILOG_SOURCES := $(PROJ_DIR)/src/blinky.v
+BUILD_INPUTS    := $(wildcard $(PROJ_DIR)/src/*.v) \
+                   $(wildcard $(PROJ_DIR)/xdc/*.xdc) \
+                   $(PROJ_DIR)/tcl/build_bitstream.tcl
 
 VIVADO_RUN = docker run --rm -it \
 	-u "$$(id -u):$$(id -g)" \
@@ -29,9 +29,13 @@ VIVADO_RUN = docker run --rm -it \
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: install
-install: ## Install Vivado via install.sh (builds image + installs, skips if already done)
-	./install.sh
+.PHONY: install-vivado
+install-vivado: ## Install Vivado
+	./install.sh vivado
+
+.PHONY: install-vitis
+install-vitis: ## Install Vitis Embedded
+	./install.sh vitis
 
 .PHONY: verify
 verify: ## Confirm Vivado runs and print its version
@@ -51,7 +55,9 @@ setup: ## Create Vivado project and block design
 	$(VIVADO_RUN) bash -c "source /opt/Xilinx/Vivado/$(VIVADO_VERSION)/settings64.sh && cd /proj && vivado -mode batch -source $(SETUP_SCRIPT)"
 
 .PHONY: build
-build: lint ## Build bitstream from existing Vivado project
+build: lint $(BIT_FILE) ## Build bitstream from existing Vivado project
+
+$(BIT_FILE): $(BUILD_INPUTS)
 	$(VIVADO_RUN) bash -c "source /opt/Xilinx/Vivado/$(VIVADO_VERSION)/settings64.sh && cd /proj && vivado -mode batch -source $(TCL_SCRIPT)"
 
 .PHONY: rebuild

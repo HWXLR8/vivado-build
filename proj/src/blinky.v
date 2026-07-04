@@ -3,6 +3,6 @@ module blinky(input      clk,
               output reg led);
 
    always @(posedge clk)
-     led <= btn;
+     led <= ~btn;
 
 endmodule
