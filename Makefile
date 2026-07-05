@@ -2,8 +2,8 @@ SHELL := /bin/bash
 
 VIVADO_VERSION  := 2023.2
 IMAGE_NAME      := vivado-base:$(VIVADO_VERSION)
-INSTALL_DIR     := $(HOME)/xilinx-install
-LICENSE_DIR     := $(HOME)/xilinx-license
+INSTALL_DIR     := $(CURDIR)/xilinx-install
+LICENSE_DIR     := $(CURDIR)/xilinx-license
 PROJ_DIR        := $(CURDIR)/proj
 BOARD           := pynq_z2
 BIT_FILE        := $(PROJ_DIR)/pynq_z2_rtl.bit
@@ -25,7 +25,6 @@ VIVADO_RUN = docker run --rm -it \
 	-v "$(INSTALL_DIR):/opt/Xilinx" \
 	-v "$(PROJ_DIR):/proj" \
 	-v "$(LICENSE_DIR):/root/.Xilinx" \
-	-v "$(HOME)/xilinx-install/Vitis_Embedded:/opt/Xilinx/Vitis_Embedded" \
 	-e XILINXD_LICENSE_FILE=/root/.Xilinx \
 	$(IMAGE_NAME)
 

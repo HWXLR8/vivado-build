@@ -17,3 +17,7 @@ proj/pynq_z2_rtl/
 *.backup
 *.bak
 *~
+
+/xilinx-install/
+/xilinx-license/
+/tmp/
