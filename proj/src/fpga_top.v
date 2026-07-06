@@ -1,7 +1,11 @@
 module fpga_top(
   input        btn,
   output       led,
-  output       uart_tx,
+  output [3:0] vga_r,
+  output [3:0] vga_g,
+  output [3:0] vga_b,
+  output       vga_hsync,
+  output       vga_vsync,
 
   inout [14:0] DDR_addr,
   inout [2:0]  DDR_ba,
@@ -56,11 +60,16 @@ module fpga_top(
     .FIXED_IO_ps_srstb(FIXED_IO_ps_srstb)
   );
 
-  blinky user_logic (
-    .clk(clk),
-    .btn(btn),
-    .led(led),
-    .uart_tx(uart_tx)
-  );
+   blinky user_logic (.clk(clk),
+                      .btn(btn),
+                      .led(led),
+                      .uart_tx());
+
+   vga_test vga_test_inst (.clk(clk),
+                           .vga_r(vga_r),
+                           .vga_g(vga_g),
+                           .vga_b(vga_b),
+                           .vga_hsync(vga_hsync),
+                           .vga_vsync(vga_vsync));
 
 endmodule
