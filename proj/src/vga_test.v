@@ -20,11 +20,24 @@ module vga_test(input            clk,
    localparam V_BACK    = 33;
    localparam V_TOTAL   = V_VISIBLE + V_FRONT + V_SYNC + V_BACK;
 
+   // play area resolution
+   localparam H_CANVAS = 256;
+   localparam V_CANVAS = 224;
+   // centered canvas coords
+   localparam H_CANVAS_START = (H_VISIBLE/2) - (H_CANVAS/2);
+   localparam H_CANVAS_END = H_CANVAS_START + H_CANVAS;
+   localparam V_CANVAS_START = (V_VISIBLE/2) - (V_CANVAS/2);
+   localparam V_CANVAS_END = V_CANVAS_START + V_CANVAS;
+
    reg [9:0]  h_count = 0;
    reg [9:0]  v_count = 0;
 
    wire       active_video = (h_count < H_VISIBLE) && (v_count < V_VISIBLE);
-   wire       hsync_active = (h_count >= (H_VISIBLE + H_FRONT)) &&
+   wire       active_canvas = (h_count >= H_CANVAS_START &&
+                               h_count < H_CANVAS_END &&
+                               v_count >= V_CANVAS_START &&
+                               v_count < V_CANVAS_END);
+      wire       hsync_active = (h_count >= (H_VISIBLE + H_FRONT)) &&
               (h_count < (H_VISIBLE + H_FRONT + H_SYNC));
    wire       vsync_active = (v_count >= (V_VISIBLE + V_FRONT)) &&
               (v_count < (V_VISIBLE + V_FRONT + V_SYNC));
@@ -51,22 +64,14 @@ module vga_test(input            clk,
          vga_vsync <= ~vsync_active;
 
          if (active_video) begin
-            if (h_count < 160) begin
-               vga_r <= 4'hF;
-               vga_g <= 4'h0;
-               vga_b <= 4'h0;
-            end else if (h_count < 320) begin
-               vga_r <= 4'h0;
-               vga_g <= 4'hF;
-               vga_b <= 4'h0;
-            end else if (h_count < 480) begin
-               vga_r <= 4'h0;
-               vga_g <= 4'h0;
-               vga_b <= 4'hF;
-            end else if (h_count < 640) begin
+            if (active_canvas) begin
                vga_r <= 4'hF;
                vga_g <= 4'hF;
                vga_b <= 4'hF;
+            end else begin
+               vga_r <= 4'h0;
+               vga_g <= 4'h0;
+               vga_b <= 4'h0;
             end
          end else begin
             vga_r <= 4'h0;
