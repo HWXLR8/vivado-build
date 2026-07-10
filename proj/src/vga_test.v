@@ -23,6 +23,9 @@ module vga_test(input            clk,
    // play area resolution
    localparam H_CANVAS = 256;
    localparam V_CANVAS = 224;
+   localparam CANVAS_PX_TOTAL = H_CANVAS * V_CANVAS;
+   localparam CANVAS_PX_WIDTH = $clog2(CANVAS_PX_TOTAL);
+
    // centered canvas coords
    localparam H_CANVAS_START = (H_VISIBLE/2) - (H_CANVAS/2);
    localparam H_CANVAS_END = H_CANVAS_START + H_CANVAS;
@@ -32,12 +35,24 @@ module vga_test(input            clk,
    reg [9:0]  h_count = 0;
    reg [9:0]  v_count = 0;
 
+   // 1 bit framebuffer
+   reg fb [0:CANVAS_PX_TOTAL-1];
+   reg [CANVAS_PX_WIDTH-1:0] canvas_px_count = 0;
+
+   initial begin : init_fb
+      integer i;
+      for (i = 0; i < CANVAS_PX_TOTAL; i = i+1) begin
+         fb[i] = ~i[0]; // alternating pattern
+      end
+   end
+
+
    wire       active_video = (h_count < H_VISIBLE) && (v_count < V_VISIBLE);
    wire       active_canvas = (h_count >= H_CANVAS_START &&
                                h_count < H_CANVAS_END &&
                                v_count >= V_CANVAS_START &&
                                v_count < V_CANVAS_END);
-      wire       hsync_active = (h_count >= (H_VISIBLE + H_FRONT)) &&
+   wire       hsync_active = (h_count >= (H_VISIBLE + H_FRONT)) &&
               (h_count < (H_VISIBLE + H_FRONT + H_SYNC));
    wire       vsync_active = (v_count >= (V_VISIBLE + V_FRONT)) &&
               (v_count < (V_VISIBLE + V_FRONT + V_SYNC));
@@ -63,22 +78,28 @@ module vga_test(input            clk,
          vga_hsync <= ~hsync_active;
          vga_vsync <= ~vsync_active;
 
-         if (active_video) begin
-            if (active_canvas) begin
-               vga_r <= 4'hF;
+         if (active_video && active_canvas) begin
+            // read from fb
+            if (fb[canvas_px_count]) begin
+               vga_r <= 4'h0;
                vga_g <= 4'hF;
-               vga_b <= 4'hF;
+               vga_b <= 4'h0;
             end else begin
                vga_r <= 4'h0;
                vga_g <= 4'h0;
                vga_b <= 4'h0;
             end
-         end else begin
+            // increment px counter
+            if (canvas_px_count == CANVAS_PX_TOTAL - 1) begin
+               canvas_px_count <= 0;
+            end else begin
+               canvas_px_count <= canvas_px_count + 1'b1;
+            end
+         end else begin // black outside canvas
             vga_r <= 4'h0;
             vga_g <= 4'h0;
             vga_b <= 4'h0;
          end
-
       end // if (pixel_tick)
    end // always @ (posedge clk)
 
