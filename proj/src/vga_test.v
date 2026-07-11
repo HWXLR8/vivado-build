@@ -41,8 +41,20 @@ module vga_test(input            clk,
 
    initial begin : init_fb
       integer i;
+      integer c;
+      reg     color;
+
+      c = 0;
+      color = 1'b1;
+
       for (i = 0; i < CANVAS_PX_TOTAL; i = i+1) begin
-         fb[i] = ~i[0]; // alternating pattern
+         fb[i] = color;
+         if (c == 3) begin
+            color = ~color;
+            c = 0;
+         end else begin
+            c = c + 1;
+         end
       end
    end
 
@@ -78,8 +90,8 @@ module vga_test(input            clk,
          vga_hsync <= ~hsync_active;
          vga_vsync <= ~vsync_active;
 
+         // renderer
          if (active_video && active_canvas) begin
-            // read from fb
             if (fb[canvas_px_count]) begin
                vga_r <= 4'h0;
                vga_g <= 4'hF;
