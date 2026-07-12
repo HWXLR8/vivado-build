@@ -41,20 +41,17 @@ module vga_test(input            clk,
    assign canvas_y = v_count - V_CANVAS_START;
    assign pixel_idx = (canvas_y * H_CANVAS) + canvas_x;
 
-   // byte-indexed fb
-   reg [7:0] fb [0:(CANVAS_PX_TOTAL/8)-1];
-
-   initial begin : init_fb
-      integer i;
-      reg [7:0] pattern;
-
-      for (i = 0; i < (CANVAS_PX_TOTAL/8); i = i+1) begin
-         if (i[2])
-           fb[i] = 8'h00;
-         else
-           fb[i] = 8'hFF;
-      end
-   end
+   // VRAM
+   wire [12:0] vram_rd_addr;
+   wire [7:0]  vram_rd_data;
+   assign vram_rd_addr = pixel_idx >> 3; // pixel index / 8 to get byte
+   vram vram_inst (.clk(clk),
+                   .vid_rd_addr(vram_rd_addr),
+                   .vid_rd_data(vram_rd_data),
+                   .cpu_addr(13'b0),
+                   .cpu_rd_data(),
+                   .cpu_wr_data(8'b0),
+                   .cpu_we(1'b0));
 
    wire       active_video = (h_count < H_VISIBLE) && (v_count < V_VISIBLE);
    wire       active_canvas = (h_count >= H_CANVAS_START &&
@@ -89,11 +86,9 @@ module vga_test(input            clk,
 
          // renderer
          if (active_video && active_canvas) begin
-            // extract byte
-            // pixel_idx / 8;
             // extract pixel
-            // pixel_idx % 8;
-            if (fb[pixel_idx >> 3][pixel_idx[2:0]]) begin
+            // vram_rd_data % 8
+            if (vram_rd_data[pixel_idx[2:0]]) begin
                vga_r <= 4'h0;
                vga_g <= 4'hF;
                vga_b <= 4'h0;
