@@ -2,6 +2,8 @@ create_project pynq_z2_rtl ./pynq_z2_rtl -part xc7z020clg400-1 -force
 set_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]
 
 add_files [glob ./src/*.v]
+add_files ./third_party/light8080/verilog/rtl/light8080.v
+add_files ./third_party/light8080/verilog/rtl/micro_rom.v
 
 create_bd_design "system"
 create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0

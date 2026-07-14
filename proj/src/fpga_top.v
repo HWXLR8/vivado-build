@@ -31,17 +31,54 @@ module fpga_top(
   inout         FIXED_IO_ps_srstb
 );
 
+   // -------------------------------------------------------------------------
+   // Clock
+   // -------------------------------------------------------------------------
    wire clk;
 
-   // vga -> vram port
+   // -------------------------------------------------------------------------
+   // VGA <-> VRAM video read port
+   // -------------------------------------------------------------------------
    wire [12:0] vga_vram_rd_addr;
    wire [7:0]  vga_vram_rd_data;
 
-   // memmap -> vram CPU port
+   // -------------------------------------------------------------------------
+   // Memory map <-> VRAM CPU port
+   // -------------------------------------------------------------------------
    wire [12:0] cpu_vram_addr;
    wire [7:0]  cpu_vram_rd_data;
    wire [7:0]  cpu_vram_wr_data;
    wire        cpu_vram_we;
+
+   // -------------------------------------------------------------------------
+   // CPU core <-> light8080 adapter
+   // -------------------------------------------------------------------------
+   wire        l80_vma;
+   wire        l80_io;
+   wire        l80_rd;
+   wire        l80_wr;
+   wire [7:0]  l80_data_out;
+   wire [7:0]  l80_data_in;
+   wire [15:0] l80_addr_out;
+
+   // -------------------------------------------------------------------------
+   // light8080 adapter <-> memory map
+   // -------------------------------------------------------------------------
+   wire [15:0] cpu_addr;
+   wire [7:0]  cpu_rd_data;
+   wire [7:0]  cpu_wr_data;
+   wire        cpu_we;
+
+   // debug LED, prove that CPU is fetching opcodes
+   wire        l80_fetch;
+   reg [23:0]  fetch_count;
+   always @(posedge clk) begin
+      if (btn)
+        fetch_count <= 24'd0;
+      else if (l80_fetch)
+        fetch_count <= fetch_count + 1'b1;
+   end
+   assign led = fetch_count[23];
 
   system_wrapper ps_system (
     .FCLK_CLK0_0(clk),
@@ -70,11 +107,6 @@ module fpga_top(
     .FIXED_IO_ps_srstb(FIXED_IO_ps_srstb)
   );
 
-   blinky user_logic (.clk(clk),
-                      .btn(btn),
-                      .led(led),
-                      .uart_tx());
-
    vga vga_inst (.clk(clk),
                  .vga_r(vga_r),
                  .vga_g(vga_g),
@@ -84,10 +116,10 @@ module fpga_top(
                  .vram_rd_addr(vga_vram_rd_addr),
                  .vram_rd_data(vga_vram_rd_data));
 
-   memmap memmap_inst (.cpu_addr(16'b0),
-                       .cpu_rd_data(),
-                       .cpu_wr_data(8'b0),
-                       .cpu_we(1'b0),
+   memmap memmap_inst (.cpu_addr(cpu_addr),
+                       .cpu_rd_data(cpu_rd_data),
+                       .cpu_wr_data(cpu_wr_data),
+                       .cpu_we(cpu_we),
 
                        .cpu_vram_addr(cpu_vram_addr),
                        .cpu_vram_rd_data(cpu_vram_rd_data),
@@ -103,5 +135,33 @@ module fpga_top(
                    .cpu_rd_data(cpu_vram_rd_data),
                    .cpu_wr_data(cpu_vram_wr_data),
                    .cpu_we(cpu_vram_we));
+
+   light8080 l8080 (.clk(clk),
+                    .reset(btn),
+                    .addr_out(l80_addr_out),
+                    .vma(l80_vma),
+                    .io(l80_io),
+                    .rd(l80_rd),
+                    .wr(l80_wr),
+                    .data_in(l80_data_in),
+                    .data_out(l80_data_out),
+                    .fetch(l80_fetch),
+                    .inta(),
+                    .inte(),
+                    .halt(),
+                    .intr(1'b0));
+
+  light8080_adapter l8080_adapter (.vma(l80_vma),
+                                   .io(l80_io),
+                                   .rd(l80_rd),
+                                   .wr(l80_wr),
+                                   .data_out(l80_data_out),
+                                   .addr_out(l80_addr_out),
+                                   .data_in(l80_data_in),
+                                   .memmap_cpu_addr(cpu_addr),
+                                   .memmap_cpu_wr_data(cpu_wr_data),
+                                   .memmap_cpu_we(cpu_we),
+                                   .memmap_cpu_rd_data(cpu_rd_data));
+
 
 endmodule
