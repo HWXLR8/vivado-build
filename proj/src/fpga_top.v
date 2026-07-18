@@ -83,16 +83,12 @@ module fpga_top(
    wire [7:0]  cpu_wr_data;
    wire        cpu_we;
 
-   // debug LED, prove that CPU is fetching opcodes
    wire        l80_fetch;
-   reg [23:0]  fetch_count;
-   always @(posedge clk) begin
-      if (btn)
-        fetch_count <= 24'd0;
-      else if (l80_fetch)
-        fetch_count <= fetch_count + 1'b1;
-   end
-   assign led = fetch_count[23];
+   wire        l80_halt;
+   wire        l80_inte;
+
+   assign led = l80_inte;
+
 
   system_wrapper ps_system (
     .FCLK_CLK0_0(clk),
@@ -179,8 +175,8 @@ module fpga_top(
                     .data_out(l80_data_out),
                     .fetch(l80_fetch),
                     .inta(),
-                    .inte(),
-                    .halt(),
+                    .inte(l80_inte),
+                    .halt(l80_halt),
                     .intr(1'b0));
 
   light8080_adapter l8080_adapter (.vma(l80_vma),
