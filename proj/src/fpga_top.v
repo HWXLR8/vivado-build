@@ -57,6 +57,14 @@ module fpga_top(
    wire [7:0]  rom_data;
 
    // -------------------------------------------------------------------------
+   // Memory map <-> RAM
+   // -------------------------------------------------------------------------
+   wire [9:0]  ram_addr;
+   wire [7:0]  ram_rd_data;
+   wire [7:0]  ram_wr_data;
+   wire        ram_we;
+
+   // -------------------------------------------------------------------------
    // CPU core <-> light8080 adapter
    // -------------------------------------------------------------------------
    wire        l80_vma;
@@ -133,12 +141,22 @@ module fpga_top(
                        .cpu_vram_we(cpu_vram_we),
 
                        .rom_addr(rom_addr),
-                       .rom_data(rom_data));
+                       .rom_data(rom_data),
 
+                       .ram_addr(ram_addr),
+                       .ram_rd_data(ram_rd_data),
+                       .ram_wr_data(ram_wr_data),
+                       .ram_we(ram_we));
 
    rom rom_inst (.clk(clk),
                  .addr(rom_addr),
                  .data(rom_data));
+
+   ram ram_inst (.clk(clk),
+                 .addr(ram_addr),
+                 .rd_data(ram_rd_data),
+                 .wr_data(ram_wr_data),
+                 .we(ram_we));
 
    vram vram_inst (.clk(clk),
                    // vga port
