@@ -18,6 +18,16 @@ BUILD_INPUTS := $(wildcard $(PROJ_DIR)/src/*.v) \
                 $(PROJ_DIR)/tcl/build_bitstream.tcl \
 		$(PROJ_DIR)/roms/invaders/space_invaders.hex
 
+# Simulation (Icarus Verilog). Reuses every RTL source except fpga_top.v
+# (which pulls in the un-simulatable Zynq PS7 wrapper), plus the light8080
+# core files and the testbench.
+SIM_DIR      := $(PROJ_DIR)/sim
+ROM_HEX      := $(PROJ_DIR)/roms/invaders/space_invaders.hex
+SIM_SOURCES  := $(LINT_SOURCES) \
+                $(PROJ_DIR)/third_party/light8080/verilog/rtl/light8080.v \
+                $(PROJ_DIR)/third_party/light8080/verilog/rtl/micro_rom.v \
+                $(SIM_DIR)/tb_soc.v
+
 # colors
 GREEN := \033[1;32m
 RED   := \033[1;31m
@@ -57,6 +67,16 @@ shell: ## Drop into an interactive shell inside the Vivado container
 lint: ## Check Verilog syntax with iverilog
 	iverilog -tnull $(LINT_SOURCES)
 
+.PHONY: sim
+sim: ## Simulate the CPU subsystem with Icarus Verilog and print a trace
+	@iverilog -g2012 -o $(SIM_DIR)/soc.vvp $(SIM_SOURCES)
+	@ln -sf $(ROM_HEX) $(SIM_DIR)/space_invaders.hex
+	@cd $(SIM_DIR) && vvp soc.vvp
+
+.PHONY: wave
+wave: ## Open the last simulation waveform in GTKWave
+	gtkwave $(SIM_DIR)/tb_soc.vcd
+
 .PHONY: setup
 setup: ## Create Vivado project and block design
 	@mkdir -p "$(PROJ_DIR)"
@@ -83,6 +103,7 @@ rebuild: clean setup build ## Clean, recreate the Vivado project, and build the 
 .PHONY: clean
 clean: ## Remove generated project files
 	rm -rf "$(PROJ_DIR)/pynq_z2_rtl" "$(BIT_FILE)"
+	rm -f "$(SIM_DIR)/soc.vvp" "$(SIM_DIR)/tb_soc.vcd" "$(SIM_DIR)/space_invaders.hex"
 
 .PHONY: detect
 detect: ## Detect connected JTAG boards via openFPGALoader

@@ -15,7 +15,7 @@ apply_bd_automation \
   -config { make_external "FIXED_IO, DDR" apply_board_preset "1" Master "Disable" Slave "Disable" } \
   [get_bd_cells processing_system7_0]
 
-set_property CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {125} [get_bd_cells processing_system7_0]
+set_property CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {50} [get_bd_cells processing_system7_0]
 set_property CONFIG.PCW_USE_M_AXI_GP0 {0} [get_bd_cells processing_system7_0]
 
 make_bd_pins_external [get_bd_pins processing_system7_0/FCLK_CLK0]

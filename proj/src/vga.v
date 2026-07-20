@@ -10,7 +10,7 @@ module vga(input            clk,
            output reg       int2);
 
    reg [2:0] clk_div = 0;
-   wire      pixel_tick = (clk_div == 3'd4);
+   wire      pixel_tick = (clk_div == 3'd1); // 50 MHz / 2 = 25 MHz pixel clock
 
    localparam H_VISIBLE = 640;
    localparam H_FRONT   = 16;
