@@ -104,7 +104,8 @@ module tb_soc;
    // -------------------------------------------------------------------------
    // 3. Instantiate the DUT (same connections as fpga_top, minus PS7 and VGA)
    // -------------------------------------------------------------------------
-   memmap memmap_inst (.cpu_addr(cpu_addr),
+   memmap memmap_inst (.clk(clk),
+                       .cpu_addr(cpu_addr),
                        .cpu_rd_data(cpu_rd_data),
                        .cpu_wr_data(cpu_wr_data),
                        .cpu_we(cpu_we),

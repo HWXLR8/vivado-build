@@ -164,93 +164,99 @@ module fpga_top(
     .FIXED_IO_ps_srstb(FIXED_IO_ps_srstb)
   );
 
-   vga vga_inst (.clk(clk),
-                 .vga_r(vga_r),
-                 .vga_g(vga_g),
-                 .vga_b(vga_b),
-                 .vga_hsync(vga_hsync),
-                 .vga_vsync(vga_vsync),
-                 .vram_rd_addr(vga_vram_rd_addr),
-                 .vram_rd_data(vga_vram_rd_data),
-                 .int1(vga_int1),
-                 .int2(vga_int2));
+   vga vga_inst
+     (.clk(clk),
+      .vga_r(vga_r),
+      .vga_g(vga_g),
+      .vga_b(vga_b),
+      .vga_hsync(vga_hsync),
+      .vga_vsync(vga_vsync),
+      .vram_rd_addr(vga_vram_rd_addr),
+      .vram_rd_data(vga_vram_rd_data),
+      .int1(vga_int1),
+      .int2(vga_int2));
 
-   memmap memmap_inst (.cpu_addr(cpu_addr),
-                       .cpu_rd_data(cpu_rd_data),
-                       .cpu_wr_data(cpu_wr_data),
-                       .cpu_we(cpu_we),
+   memmap memmap_inst
+     (.clk(clk),
+      .cpu_addr(cpu_addr),
+      .cpu_rd_data(cpu_rd_data),
+      .cpu_wr_data(cpu_wr_data),
+      .cpu_we(cpu_we),
 
-                       .cpu_vram_addr(cpu_vram_addr),
-                       .cpu_vram_rd_data(cpu_vram_rd_data),
-                       .cpu_vram_wr_data(cpu_vram_wr_data),
-                       .cpu_vram_we(cpu_vram_we),
+      .cpu_vram_addr(cpu_vram_addr),
+      .cpu_vram_rd_data(cpu_vram_rd_data),
+      .cpu_vram_wr_data(cpu_vram_wr_data),
+      .cpu_vram_we(cpu_vram_we),
 
-                       .rom_addr(rom_addr),
-                       .rom_data(rom_data),
+      .rom_addr(rom_addr),
+      .rom_data(rom_data),
 
-                       .ram_addr(ram_addr),
-                       .ram_rd_data(ram_rd_data),
-                       .ram_wr_data(ram_wr_data),
-                       .ram_we(ram_we));
+      .ram_addr(ram_addr),
+      .ram_rd_data(ram_rd_data),
+      .ram_wr_data(ram_wr_data),
+      .ram_we(ram_we));
 
-   rom rom_inst (.clk(clk),
-                 .addr(rom_addr),
-                 .data(rom_data));
+   rom rom_inst
+     (.clk(clk),
+      .addr(rom_addr),
+      .data(rom_data));
 
-   ram ram_inst (.clk(clk),
-                 .addr(ram_addr),
-                 .rd_data(ram_rd_data),
-                 .wr_data(ram_wr_data),
-                 .we(ram_we));
+   ram ram_inst
+     (.clk(clk),
+      .addr(ram_addr),
+      .rd_data(ram_rd_data),
+      .wr_data(ram_wr_data),
+      .we(ram_we));
 
-   vram vram_inst (.clk(clk),
-                   // vga port
-                   .vram_rd_addr(vga_vram_rd_addr),
-                   .vram_rd_data(vga_vram_rd_data),
-                   // cpu port
-                   .cpu_addr(cpu_vram_addr),
-                   .cpu_rd_data(cpu_vram_rd_data),
-                   .cpu_wr_data(cpu_vram_wr_data),
-                   .cpu_we(cpu_vram_we));
+   vram vram_inst
+     (.clk(clk),
+      // vga port
+      .vram_rd_addr(vga_vram_rd_addr),
+      .vram_rd_data(vga_vram_rd_data),
+      // cpu port
+      .cpu_addr(cpu_vram_addr),
+      .cpu_rd_data(cpu_vram_rd_data),
+      .cpu_wr_data(cpu_vram_wr_data),
+      .cpu_we(cpu_vram_we));
 
-   interrupt int_inst (.clk(clk),
-                       .rst(rst),
-                       .int1(vga_int1),
-                       .int2(vga_int2),
-                       .inta(l80_inta),
-                       .intr(l80_intr),
-                       .irq_opcode(irq_opcode));
+   interrupt int_inst
+     (.clk(clk),
+      .rst(rst),
+      .int1(vga_int1),
+      .int2(vga_int2),
+      .inta(l80_inta),
+      .intr(l80_intr),
+      .irq_opcode(irq_opcode));
 
-   light8080 l8080 (.clk(clk),
-                    .reset(rst),
-                    .addr_out(l80_addr_out),
-                    .vma(l80_vma),
-                    .io(l80_io),
-                    .rd(l80_rd),
-                    .wr(l80_wr),
-                    .data_in(l80_data_in),
-                    .data_out(l80_data_out),
-                    .fetch(l80_fetch),
-                    .inta(l80_inta),
-                    .inte(l80_inte),
-                    .intr(l80_intr),
-                    .halt(l80_halt));
+   light8080 l8080
+     (.clk(clk),
+      .reset(rst),
+      .addr_out(l80_addr_out),
+      .vma(l80_vma),
+      .io(l80_io),
+      .rd(l80_rd),
+      .wr(l80_wr),
+      .data_in(l80_data_in),
+      .data_out(l80_data_out),
+      .fetch(l80_fetch),
+      .inta(l80_inta),
+      .inte(l80_inte),
+      .intr(l80_intr),
+      .halt(l80_halt));
 
-  light8080_adapter l8080_adapter (.vma(l80_vma),
-                                   .io(l80_io),
-                                   .rd(l80_rd),
-                                   .wr(l80_wr),
-                                   .data_out(l80_data_out),
-                                   .addr_out(l80_addr_out),
-                                   .data_in(l80_data_in),
-                                   .inta(l80_inta),
-                                   .memmap_cpu_addr(cpu_addr),
-                                   .memmap_cpu_wr_data(cpu_wr_data),
-                                   .memmap_cpu_we(cpu_we),
-                                   .memmap_cpu_rd_data(cpu_rd_data),
-                                   .irq_opcode(irq_opcode));
-
-
-
+   light8080_adapter l8080_adapter
+     (.vma(l80_vma),
+      .io(l80_io),
+      .rd(l80_rd),
+      .wr(l80_wr),
+      .data_out(l80_data_out),
+      .addr_out(l80_addr_out),
+      .data_in(l80_data_in),
+      .inta(l80_inta),
+      .memmap_cpu_addr(cpu_addr),
+      .memmap_cpu_wr_data(cpu_wr_data),
+      .memmap_cpu_we(cpu_we),
+      .memmap_cpu_rd_data(cpu_rd_data),
+      .irq_opcode(irq_opcode));
 
 endmodule
