@@ -19,10 +19,10 @@ module light8080_adapter (input         vma,
                           input [7:0]   data_out,
                           input [15:0]  addr_out,
                           output [7:0]  data_in,
+                          input         inta,
                           // fetch,
                           // halt,
                           // inte,
-                          // intr,
                           // inta,
                           // reset,
                           // clk
@@ -31,7 +31,10 @@ module light8080_adapter (input         vma,
                           output [15:0] memmap_cpu_addr,
                           input [7:0]   memmap_cpu_rd_data,
                           output [7:0]  memmap_cpu_wr_data,
-                          output        memmap_cpu_we
+                          output        memmap_cpu_we,
+
+                          // interrupt
+                          input [7:0]   irq_opcode
 );
 
    wire mem_access = vma && !io;
@@ -40,7 +43,8 @@ module light8080_adapter (input         vma,
 
    assign memmap_cpu_addr = addr_out;
    assign memmap_cpu_wr_data = data_out;
-   assign data_in = mem_read ? memmap_cpu_rd_data : 8'h00;
+   assign data_in = inta ? irq_opcode :
+                    memmap_cpu_rd_data;
    assign memmap_cpu_we = mem_write;
 
 endmodule

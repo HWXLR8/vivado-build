@@ -5,7 +5,7 @@ module rom (input            clk,
    reg [7:0] mem [0:8191];
 
    initial begin
-      $readmemh("roms/invaders/space_invaders.hex", mem);
+      $readmemh("space_invaders.hex", mem);
    end
 
    always @(posedge clk) begin

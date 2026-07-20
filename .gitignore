@@ -21,3 +21,8 @@ proj/pynq_z2_rtl/
 /xilinx-install/
 /xilinx-license/
 /tmp/
+
+# sim artifacts
+*.vvp
+*.vcd
+proj/sim/*.hex

@@ -5,10 +5,12 @@ module vga(input            clk,
            output reg       vga_hsync,
            output reg       vga_vsync,
            output [12:0]    vram_rd_addr,
-           input [7:0]      vram_rd_data);
+           input [7:0]      vram_rd_data,
+           output reg       int1,
+           output reg       int2);
 
    reg [2:0] clk_div = 0;
-   wire      pixel_tick = (clk_div == 3'd4);
+   wire      pixel_tick = (clk_div == 3'd1); // 50 MHz / 2 = 25 MHz pixel clock
 
    localparam H_VISIBLE = 640;
    localparam H_FRONT   = 16;
@@ -70,6 +72,15 @@ module vga(input            clk,
               v_count <= v_count + 1;
          end else begin
             h_count <= h_count + 1;
+         end
+
+         // interrupts
+         int1 <= 1'b0;
+         int2 <= 1'b0;
+         if (v_count == V_CANVAS_START + 96 && h_count == 0) begin
+            int1 <= 1'b1;
+         end else if (v_count == V_CANVAS_START + 224 && h_count == 0) begin
+            int2 <= 1'b1;
          end
 
          vga_hsync <= ~hsync_active;
