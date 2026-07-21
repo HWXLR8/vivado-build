@@ -43,7 +43,7 @@ module vga(input            clk,
 
    assign canvas_x = h_count - H_CANVAS_START;
    assign canvas_y = v_count - V_CANVAS_START;
-   assign pixel_idx = (canvas_y * H_CANVAS) + canvas_x;
+   assign pixel_idx = (((V_CANVAS - 1) - canvas_y) * H_CANVAS) + ((H_CANVAS - 1) - canvas_x);
    assign vram_rd_addr = pixel_idx >> 3; // pixel index / 8 to get byte
 
    wire       active_video = (h_count < H_VISIBLE) && (v_count < V_VISIBLE);

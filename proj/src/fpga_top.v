@@ -84,9 +84,14 @@ module fpga_top(
    wire [7:0]  cpu_wr_data;
    wire        cpu_we;
 
-   wire        l80_fetch;
-   wire        l80_halt;
-   wire        l80_inte;
+   // -------------------------------------------------------------------------
+   // light8080 adapter <-> shifter
+   // -------------------------------------------------------------------------
+   wire [7:0]  shifter_data_out;
+   wire [7:0]  shifter_data_in;
+   wire [2:0]  shifter_shift;
+   wire        shifter_shift_we;
+   wire        shifter_data_we;
 
    // -------------------------------------------------------------------------
    // interrupt <-> VGA
@@ -104,6 +109,10 @@ module fpga_top(
    // -------------------------------------------------------------------------
    wire [7:0]  irq_opcode;
 
+   wire        l80_fetch;
+   wire        l80_halt;
+   wire        l80_inte;
+
    // RST
    reg [1:0]   btn_sync = 2'b00;
    reg [7:0]   por_count = 8'hFF;
@@ -117,25 +126,23 @@ module fpga_top(
 
    wire rst = btn_sync[1] || (por_count != 0);
 
-
    // TEST
-   reg  first_fetch_seen;
-   reg  bad_first_fetch;
+reg data_we_previous;
+reg repeated_data_write_seen;
 
-   always @(posedge clk) begin
-      if (rst) begin
-         first_fetch_seen <= 1'b0;
-         bad_first_fetch <= 1'b0;
-      end else if (l80_fetch && !first_fetch_seen) begin
-         first_fetch_seen <= 1'b1;
+always @(posedge clk) begin
+    if (rst) begin
+        data_we_previous        <= 1'b0;
+        repeated_data_write_seen <= 1'b0;
+    end else begin
+        if (shifter_data_we && data_we_previous)
+            repeated_data_write_seen <= 1'b1;
 
-         if (l80_addr_out != 16'h0000)
-           bad_first_fetch <= 1'b1;
-      end
-   end
+        data_we_previous <= shifter_data_we;
+    end
+end
 
-   assign led = bad_first_fetch;
-
+assign led = repeated_data_write_seen;
 
   system_wrapper ps_system (
     .FCLK_CLK0_0(clk),
@@ -257,6 +264,20 @@ module fpga_top(
       .memmap_cpu_wr_data(cpu_wr_data),
       .memmap_cpu_we(cpu_we),
       .memmap_cpu_rd_data(cpu_rd_data),
-      .irq_opcode(irq_opcode));
+      .irq_opcode(irq_opcode),
+      .shifter_data_out(shifter_data_out),
+      .shifter_data_in(shifter_data_in),
+      .shifter_shift(shifter_shift),
+      .shifter_shift_we(shifter_shift_we),
+      .shifter_data_we(shifter_data_we));
+
+   shifter shifter_inst
+     (.clk(clk),
+      .rst(rst),
+      .data_in(shifter_data_in),
+      .shift(shifter_shift),
+      .data_we(shifter_data_we),
+      .shift_we(shifter_shift_we),
+      .data_out(shifter_data_out));
 
 endmodule
